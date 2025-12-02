@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rango - Cozinha Universitária</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Markdown Parser para exibir o texto da IA bonitinho -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+        }
+        .app-container {
+            max-width: 414px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .hidden-screen {
+            display: none !important;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .content-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+        .nav-active {
+            color: #ea580c;
+        }
+        .nav-inactive {
+            color: #9ca3af;
+        }
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ea580c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- LOADING OVERLAY (Novo) -->
+    <div id="loading-overlay" class="hidden-screen absolute inset-0 bg-white/90 z-[60] flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
+        <div class="loader mb-4"></div>
+        <h3 class="text-xl font-bold text-orange-600 mb-2">O Chef está pensando... 🤔</h3>
+        <p class="text-gray-500 text-sm" id="loading-text">Criando uma receita única para você.</p>
+    </div>
+
+    <!-- TELA 1: LOGIN -->
+    <main id="screen-login" class="fade-in p-8 flex flex-col justify-center h-screen bg-orange-50 z-50 absolute w-full top-0 left-0">
+        <div class="text-center mb-10">
+            <div class="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-5xl">🍳</span>
+            </div>
+            <h1 class="text-4xl font-bold text-orange-600 mb-2">Rango</h1>
+            <p class="text-gray-500">Cozinha fácil para universitários.</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); goToHome();" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                <input type="email" value="aluno@unilavras.edu.br" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" placeholder="seu@email.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                <input type="password" value="123456" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" placeholder="******">
+            </div>
+            <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-lg shadow-md hover:bg-orange-700 transition-colors">
+                Entrar
+            </button>
+        </form>
+        <p class="text-center mt-6 text-sm text-gray-500">Ainda não tem conta? <span class="text-orange-600 font-bold cursor-pointer">Cadastre-se</span></p>
+    </main>
+
+    <!-- TELA 2: HOME / SELEÇÃO -->
+    <main id="screen-home" class="content-scroll hidden-screen fade-in p-6">
+        <header class="mb-8 mt-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Olá, Calouro! 👋</h1>
+                <p class="text-gray-500 text-sm">O que tem na geladeira?</p>
+            </div>
+            <div class="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center cursor-pointer" onclick="goToProfile()">😎</div>
+        </header>
+
+        <div class="space-y-6">
+            <!-- Barra de busca simulada -->
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
+                <input type="text" placeholder="Buscar ingrediente..." class="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-300">
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">Proteínas</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Ovo">
+                        <span>🥚</span> Ovo
+                    </button>
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Frango">
+                        <span>🍗</span> Frango
+                    </button>
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Carne">
+                        <span>🥩</span> Carne
+                    </button>
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Salsicha">
+                        <span>🌭</span> Salsicha
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">Acompanhamentos</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Arroz">
+                        <span>🍚</span> Arroz
+                    </button>
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Macarrão">
+                        <span>🍝</span> Macarrão
+                    </button>
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Batata">
+                        <span>🥔</span> Batata
+                    </button>
+                    <button onclick="toggleIngredient(this)" class="ingredient-btn border-2 border-gray-200 rounded-xl p-3 flex items-center gap-2 hover:border-orange-400 transition-colors bg-white" data-ing="Legumes">
+                        <span>🥦</span> Legumes
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3 items-start">
+                 <i data-lucide="sparkles" class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0"></i>
+                 <p class="text-sm text-blue-700">O Gemini AI vai inventar uma receita única baseada nas suas escolhas.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- TELA 3: RESULTADO / DETALHES -->
+    <main id="screen-result" class="content-scroll hidden-screen fade-in bg-white p-0 z-20">
+        <div class="h-56 bg-gray-200 relative overflow-hidden group">
+            <img id="recipe-img" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80" alt="Prato pronto" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <button onclick="goBack()" class="absolute top-4 left-4 bg-white/20 backdrop-blur-md p-2 rounded-full shadow-lg text-white hover:bg-white/40 transition-colors">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="p-6 -mt-10 bg-white rounded-t-3xl relative z-10 min-h-[500px]">
+            <div class="flex justify-between items-start mb-4">
+                <div class="pr-4">
+                    <span class="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">Gerado por IA ✨</span>
+                    <h2 id="recipe-title" class="text-2xl font-bold text-gray-800 mt-2 leading-tight">Carregando...</h2>
+                </div>
+                <div class="text-center bg-orange-50 p-2 rounded-xl border border-orange-100">
+                    <span id="recipe-time" class="block font-bold text-orange-600 text-lg">--</span>
+                    <span class="text-[10px] text-orange-600 uppercase font-bold">min</span>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 my-4">
+
+            <div class="mb-6">
+                <h3 class="font-bold text-gray-800 mb-3 text-lg flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-orange-500"></i> Ingredientes
+                </h3>
+                <ul id="selected-list" class="space-y-2 text-sm text-gray-600"></ul>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="font-bold text-gray-800 mb-3 text-lg flex items-center gap-2">
+                    <i data-lucide="chef-hat" class="w-5 h-5 text-orange-500"></i> Modo de Preparo
+                </h3>
+                <div id="recipe-steps" class="space-y-4 text-gray-600 text-sm leading-relaxed"></div>
+            </div>
+
+            <!-- Botão de Funcionalidade IA Extra -->
+            <div class="mb-8" id="chef-tip-container">
+                <button onclick="getChefTip()" class="w-full bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center gap-3 hover:bg-indigo-100 transition-colors group text-left">
+                    <div class="bg-indigo-100 p-2 rounded-full group-hover:bg-indigo-200 transition-colors">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-indigo-900 text-sm">Dica de Mestre</h4>
+                        <p class="text-xs text-indigo-600">Perguntar ao Gemini um segredo para este prato.</p>
+                    </div>
+                </button>
+                <div id="chef-tip-content" class="hidden mt-3 text-sm text-indigo-800 bg-indigo-50 p-3 rounded-lg border border-indigo-100 italic"></div>
+            </div>
+            
+            <button onclick="saveRecipe()" id="btn-save" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 transition-colors flex justify-center gap-2 items-center mb-8">
+                <i data-lucide="heart"></i> Salvar nos Favoritos
+            </button>
+        </div>
+    </main>
+
+    <!-- TELA 4: FAVORITOS -->
+    <main id="screen-favorites" class="content-scroll hidden-screen fade-in p-6">
+        <header class="mb-6 mt-4">
+            <h1 class="text-2xl font-bold text-gray-800">Meus Favoritos ❤️</h1>
+            <p class="text-gray-500 text-sm">Suas obras-primas culinárias.</p>
+        </header>
+
+        <div id="favorites-list" class="space-y-4">
+            <!-- Item de exemplo -->
+            <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-4">
+                <div class="w-20 h-20 bg-gray-200 rounded-lg bg-cover bg-center flex-shrink-0" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150')"></div>
+                <div class="flex flex-col justify-center">
+                    <h4 class="font-bold text-gray-800">Mexidão Universitário</h4>
+                    <span class="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded w-fit mt-1">15 min</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- TELA 5: PERFIL -->
+    <main id="screen-profile" class="content-scroll hidden-screen fade-in p-6">
+        <header class="mb-8 mt-4 flex items-center gap-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-orange-200 to-orange-400 rounded-full flex items-center justify-center text-2xl border-4 border-white shadow-md text-white">😎</div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Calouro ADS</h1>
+                <p class="text-gray-500 text-sm">Nível: Mestre do Miojo</p>
+            </div>
+        </header>
+
+        <div class="space-y-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="key" class="text-orange-500 w-5 h-5"></i>
+                        <span class="text-gray-700">Chave API (Demo)</span>
+                    </div>
+                    <span class="text-xs text-green-500 font-bold bg-green-50 px-2 py-1 rounded">Ativa</span>
+                </div>
+                <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="moon" class="text-orange-500 w-5 h-5"></i>
+                        <span class="text-gray-700">Modo Escuro</span>
+                    </div>
+                    <i data-lucide="toggle-left" class="text-gray-400 w-8 h-8"></i>
+                </div>
+            </div>
+
+            <button onclick="goToLogin()" class="w-full text-red-500 text-sm font-medium border border-red-100 p-4 rounded-xl hover:bg-red-50 flex items-center justify-center gap-2">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Sair do App
+            </button>
+        </div>
+    </main>
+
+    <!-- TAB BAR -->
+    <nav id="navbar" class="hidden bg-white/90 backdrop-blur-md border-t border-gray-200 fixed bottom-0 w-full max-w-[414px] z-40 pb-safe shadow-[0_-5px_10px_rgba(0,0,0,0.02)]">
+        <div class="flex justify-around items-center h-16">
+            <button onclick="goToHome()" id="nav-home" class="flex flex-col items-center justify-center w-full nav-active">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Início</span>
+            </button>
+            
+            <button onclick="goToFavorites()" id="nav-favorites" class="flex flex-col items-center justify-center w-full nav-inactive hover:text-gray-600">
+                <i data-lucide="heart" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Favoritos</span>
+            </button>
+
+            <!-- Botão Mágico IA -->
+            <button onclick="generateRecipeFromFab()" class="relative -top-5 bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-full p-4 shadow-xl border-4 border-white hover:scale-105 transition-transform active:scale-95 group">
+                <i data-lucide="sparkles" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
+            </button>
+
+            <button class="flex flex-col items-center justify-center w-full nav-inactive opacity-50 cursor-not-allowed">
+                <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Lista</span>
+            </button>
+
+            <button onclick="goToProfile()" id="nav-profile" class="flex flex-col items-center justify-center w-full nav-inactive hover:text-gray-600">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Perfil</span>
+            </button>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+    lucide.createIcons();
+    const apiKey = ""; // A chave é injetada automaticamente pelo ambiente
+    let selectedIngredients = [];
+    let currentRecipeTitle = ""; // Para usar na "Dica de Mestre"
+
+    // --- GEMINI API HELPERS ---
+    
+    // 1. Gera a receita completa
+    async function callGeminiRecipe(ingredients) {
+        const prompt = `Você é um chef criativo para universitários. Crie uma receita simples, barata e rápida usando: ${ingredients.join(', ')}. Assuma que o aluno tem sal, óleo e água.
+        
+        IMPORTANTE: Responda APENAS um JSON estrito, sem markdown, sem \`\`\`json no início, apenas o objeto cru seguindo este formato exato:
+        {
+            "title": "Nome Criativo e Divertido do Prato",
+            "time": "Tempo estimado (apenas números)",
+            "ingredients_list": ["item 1", "item 2"],
+            "steps": ["Passo 1 detalhado", "Passo 2 detalhado", "Passo 3 detalhado"]
+        }`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const data = await response.json();
+            const textResponse = data.candidates[0].content.parts[0].text;
+            
+            // Limpeza básica para garantir JSON válido (remove blocos de código se a IA colocar)
+            const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(cleanJson);
+
+        } catch (error) {
+            console.error("Erro na API:", error);
+            // Fallback para não quebrar a demo se a API falhar
+            return {
+                title: "Mexidão de Emergência (Offline)",
+                time: "10",
+                ingredients_list: ingredients,
+                steps: ["A IA teve um soluço! Mas misture tudo na frigideira com alho e óleo que fica bom.", "Tempere com sal.", "Sirva quente."]
+            };
+        }
+    }
+
+    // 2. Gera uma dica rápida (Feature Extra)
+    async function callGeminiTip(recipeName) {
+        const prompt = `Dê uma única dica culinária curta, profissional e "secreta" para deixar o prato "${recipeName}" ainda mais gostoso. Máximo de 20 palavras. Use um emoji.`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (error) {
+            return "Dica: Coma enquanto está quente! 🔥";
+        }
+    }
+
+    // --- NAVEGAÇÃO & UI ---
+
+    function toggleIngredient(btn) {
+        const ingredient = btn.getAttribute('data-ing');
+        if (selectedIngredients.includes(ingredient)) {
+            selectedIngredients = selectedIngredients.filter(i => i !== ingredient);
+            btn.classList.remove('bg-orange-50', 'border-orange-500', 'text-orange-700');
+            btn.classList.add('bg-white', 'border-gray-200');
+        } else {
+            selectedIngredients.push(ingredient);
+            btn.classList.remove('bg-white', 'border-gray-200');
+            btn.classList.add('bg-orange-50', 'border-orange-500', 'text-orange-700');
+        }
+    }
+
+    async function generateRecipeFromFab() {
+        if(document.getElementById('screen-home').classList.contains('hidden-screen')) {
+            goToHome();
+            setTimeout(() => alert("Selecione os ingredientes primeiro!"), 100);
+            return;
+        }
+
+        if (selectedIngredients.length < 1) {
+            alert("Selecione pelo menos 1 ingrediente para a mágica acontecer!");
+            return;
+        }
+
+        // Mostra Loading
+        document.getElementById('loading-overlay').classList.remove('hidden-screen');
+        document.getElementById('loading-text').innerText = `Inventando algo com ${selectedIngredients.join(', ')}...`;
+
+        // Chama a IA
+        const recipe = await callGeminiRecipe(selectedIngredients);
+        currentRecipeTitle = recipe.title;
+
+        // Preenche a tela
+        document.getElementById('recipe-title').innerText = recipe.title;
+        document.getElementById('recipe-time').innerText = recipe.time;
+        
+        // Renderiza Ingredientes sugeridos pela IA
+        const listEl = document.getElementById('selected-list');
+        listEl.innerHTML = ''; 
+        recipe.ingredients_list.forEach(ing => {
+            listEl.innerHTML += `<li class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-orange-400 rounded-full"></div> ${ing}</li>`;
+        });
+
+        // Renderiza Passos
+        const stepsContainer = document.getElementById('recipe-steps');
+        stepsContainer.innerHTML = '';
+        recipe.steps.forEach((step, index) => {
+            stepsContainer.innerHTML += `
+                <div class="flex gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <span class="font-bold text-orange-500 bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm flex-shrink-0 border border-orange-100">${index + 1}</span>
+                    <p class="text-gray-600 text-sm mt-1">${step}</p>
+                </div>
+            `;
+        });
+
+        // Reset UI
+        document.getElementById('chef-tip-content').classList.add('hidden');
+        document.getElementById('chef-tip-content').innerText = '';
+        
+        const btnSave = document.getElementById('btn-save');
+        btnSave.innerHTML = `<i data-lucide="heart"></i> Salvar nos Favoritos`;
+        btnSave.className = "w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 transition-colors flex justify-center gap-2 items-center mb-8";
+
+        // Esconde Loading e mostra tela
+        document.getElementById('loading-overlay').classList.add('hidden-screen');
+        hideAllScreens();
+        document.getElementById('screen-result').classList.remove('hidden-screen');
+        lucide.createIcons();
+        window.scrollTo(0, 0);
+    }
+
+    async function getChefTip() {
+        const btn = document.querySelector('#chef-tip-container button');
+        const contentDiv = document.getElementById('chef-tip-content');
+        
+        // Animação de loading no botão
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<div class="loader !w-5 !h-5 !border-2"></div> <span class="text-indigo-900 font-bold text-sm ml-2">Consultando o Chef...</span>`;
+        
+        const tip = await callGeminiTip(currentRecipeTitle);
+        
+        contentDiv.innerText = tip;
+        contentDiv.classList.remove('hidden');
+        
+        // Restaura botão
+        btn.innerHTML = originalText;
+        lucide.createIcons();
+    }
+
+    // --- FUNÇÕES DE NAVEGAÇÃO (Padrão) ---
+    function hideAllScreens() {
+        document.querySelectorAll('main').forEach(el => el.classList.add('hidden-screen'));
+    }
+
+    function updateNav(activeTab) {
+        document.getElementById('navbar').classList.remove('hidden');
+        ['home', 'favorites', 'profile'].forEach(tab => {
+            const el = document.getElementById(`nav-${tab}`);
+            if(el) el.className = `flex flex-col items-center justify-center w-full nav-inactive hover:text-gray-600 transition-colors`;
+        });
+        if(activeTab) {
+            document.getElementById(`nav-${activeTab}`).className = `flex flex-col items-center justify-center w-full nav-active transition-colors`;
+        }
+    }
+
+    function goToLogin() {
+        hideAllScreens();
+        document.getElementById('screen-login').classList.remove('hidden-screen');
+        document.getElementById('navbar').classList.add('hidden');
+    }
+
+    function goToHome() {
+        hideAllScreens();
+        document.getElementById('screen-home').classList.remove('hidden-screen');
+        updateNav('home');
+        window.scrollTo(0,0);
+    }
+
+    function goToFavorites() {
+        hideAllScreens();
+        document.getElementById('screen-favorites').classList.remove('hidden-screen');
+        updateNav('favorites');
+        window.scrollTo(0,0);
+    }
+
+    function goToProfile() {
+        hideAllScreens();
+        document.getElementById('screen-profile').classList.remove('hidden-screen');
+        updateNav('profile');
+        window.scrollTo(0,0);
+    }
+
+    function goBack() { goToHome(); }
+
+    function saveRecipe() {
+        const btnSave = document.getElementById('btn-save');
+        btnSave.innerHTML = `<i data-lucide="check"></i> Salvo!`;
+        btnSave.className = "w-full bg-gray-400 text-white font-bold py-4 rounded-xl shadow-none flex justify-center gap-2 items-center mb-8";
+        lucide.createIcons();
+
+        const favList = document.getElementById('favorites-list');
+        const title = document.getElementById('recipe-title').innerText;
+        const time = document.getElementById('recipe-time').innerText;
+        
+        const newItem = `
+            <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-4 animate-pulse">
+                <div class="w-20 h-20 bg-gray-200 rounded-lg bg-cover bg-center flex-shrink-0" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150')"></div>
+                <div class="flex flex-col justify-center">
+                    <h4 class="font-bold text-gray-800">${title}</h4>
+                    <span class="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded w-fit mt-1">${time} min</span>
+                </div>
+            </div>
+        `;
+        favList.insertAdjacentHTML('afterbegin', newItem);
+    }
+</script>
+
+</body>
+</html>
