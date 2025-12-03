@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rango - Cozinha Universitária</title>
+    <title>Rango.AI - Cozinha Universitária</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Markdown Parser para exibir o texto da IA bonitinho -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <style>
@@ -47,7 +46,6 @@
         .nav-inactive {
             color: #9ca3af;
         }
-        /* Loading Spinner */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #ea580c;
@@ -67,7 +65,7 @@
 
 <div class="app-container">
     
-    <!-- LOADING OVERLAY (Novo) -->
+    <!-- LOADING OVERLAY -->
     <div id="loading-overlay" class="hidden-screen absolute inset-0 bg-white/90 z-[60] flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
         <div class="loader mb-4"></div>
         <h3 class="text-xl font-bold text-orange-600 mb-2">O Chef está pensando... 🤔</h3>
@@ -80,8 +78,8 @@
             <div class="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="text-5xl">🍳</span>
             </div>
-            <h1 class="text-4xl font-bold text-orange-600 mb-2">Rango</h1>
-            <p class="text-gray-500">Cozinha fácil para todos.</p>
+            <h1 class="text-4xl font-bold text-orange-600 mb-2">Rango.AI</h1>
+            <p class="text-gray-500">Cozinha fácil para universitários.</p>
         </div>
 
         <form onsubmit="event.preventDefault(); goToHome();" class="space-y-4">
@@ -111,7 +109,6 @@
         </header>
 
         <div class="space-y-6">
-            <!-- Barra de busca simulada -->
             <div class="relative">
                 <i data-lucide="search" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
                 <input type="text" placeholder="Buscar ingrediente..." class="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-300">
@@ -198,7 +195,6 @@
                 <div id="recipe-steps" class="space-y-4 text-gray-600 text-sm leading-relaxed"></div>
             </div>
 
-            <!-- Botão de Funcionalidade IA Extra -->
             <div class="mb-8" id="chef-tip-container">
                 <button onclick="getChefTip()" class="w-full bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center gap-3 hover:bg-indigo-100 transition-colors group text-left">
                     <div class="bg-indigo-100 p-2 rounded-full group-hover:bg-indigo-200 transition-colors">
@@ -226,7 +222,6 @@
         </header>
 
         <div id="favorites-list" class="space-y-4">
-            <!-- Item de exemplo -->
             <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-4">
                 <div class="w-20 h-20 bg-gray-200 rounded-lg bg-cover bg-center flex-shrink-0" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150')"></div>
                 <div class="flex flex-col justify-center">
@@ -234,6 +229,30 @@
                     <span class="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded w-fit mt-1">15 min</span>
                 </div>
             </div>
+        </div>
+    </main>
+
+    <!-- TELA 6: LISTA DE COMPRAS (Nova) -->
+    <main id="screen-list" class="content-scroll hidden-screen fade-in p-6">
+        <header class="mb-6 mt-4">
+            <h1 class="text-2xl font-bold text-gray-800">Lista de Compras 🛒</h1>
+            <p class="text-gray-500 text-sm">Não esqueça de nada!</p>
+        </header>
+
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="new-item-input" placeholder="Adicionar item..." class="flex-grow p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-300 transition-colors" onkeypress="handleEnter(event)">
+            <button onclick="addListItem()" class="bg-orange-600 text-white p-3 rounded-xl shadow-md hover:bg-orange-700 transition-colors flex-shrink-0 w-12 flex justify-center items-center">
+                <i data-lucide="plus" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <ul id="shopping-list" class="space-y-3 pb-4">
+            <!-- Items injected by JS -->
+        </ul>
+        
+        <div id="empty-list" class="text-center mt-10 opacity-50 hidden">
+            <i data-lucide="shopping-cart" class="w-16 h-16 mx-auto mb-2 text-gray-300"></i>
+            <p class="text-gray-400">Sua lista está vazia.</p>
         </div>
     </main>
 
@@ -289,7 +308,8 @@
                 <i data-lucide="sparkles" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
             </button>
 
-            <button class="flex flex-col items-center justify-center w-full nav-inactive opacity-50 cursor-not-allowed">
+            <!-- Botão Lista Atualizado -->
+            <button onclick="goToList()" id="nav-list" class="flex flex-col items-center justify-center w-full nav-inactive hover:text-gray-600 transition-colors">
                 <i data-lucide="shopping-cart" class="w-6 h-6"></i>
                 <span class="text-[10px] mt-1 font-medium">Lista</span>
             </button>
@@ -305,14 +325,31 @@
 
 <script>
     lucide.createIcons();
-    const apiKey = ""; // A chave é injetada automaticamente pelo ambiente
+
+    // -------------------------------------------------------------------------
+    // ATENÇÃO: PARA FUNCIONAR FORA DO CHAT, VOCÊ PRECISA DA SUA CHAVE!
+    // 1. Acesse: https://aistudio.google.com/app/apikey
+    // 2. Crie uma chave gratuita.
+    // 3. Cole dentro das aspas abaixo, exemplo: const apiKey = "AIzaSy...";
+    // -------------------------------------------------------------------------
+    const apiKey = "AIzaSyDLN57qegYkwXXaUrqM1GUnY4DJv9SCY6A"; 
+    
     let selectedIngredients = [];
-    let currentRecipeTitle = ""; // Para usar na "Dica de Mestre"
+    let currentRecipeTitle = ""; 
+    
+    // Estado da Lista de Compras
+    let shoppingList = ["Detergente", "Esponja", "Café"]; 
 
     // --- GEMINI API HELPERS ---
     
-    // 1. Gera a receita completa
     async function callGeminiRecipe(ingredients) {
+        
+        // Verificação de Segurança para o Aluno
+        if (!apiKey) {
+            alert("⚠️ API Key não encontrada!\n\nPara o app funcionar 'no ar', você precisa adicionar sua chave do Gemini no código.\n\nVeja os comentários no arquivo index.html linha ~440.");
+            throw new Error("API Key missing");
+        }
+
         const prompt = `Você é um chef criativo para universitários. Crie uma receita simples, barata e rápida usando: ${ingredients.join(', ')}. Assuma que o aluno tem sal, óleo e água.
         
         IMPORTANTE: Responda APENAS um JSON estrito, sem markdown, sem \`\`\`json no início, apenas o objeto cru seguindo este formato exato:
@@ -332,27 +369,28 @@
                 })
             });
 
+            if (!response.ok) throw new Error("Erro na requisição da API");
+
             const data = await response.json();
             const textResponse = data.candidates[0].content.parts[0].text;
-            
-            // Limpeza básica para garantir JSON válido (remove blocos de código se a IA colocar)
             const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(cleanJson);
 
         } catch (error) {
             console.error("Erro na API:", error);
-            // Fallback para não quebrar a demo se a API falhar
-            return {
+            // Re-throw para parar o loading visual corretamente ou retornar fallback
+             return {
                 title: "Mexidão de Emergência (Offline)",
                 time: "10",
                 ingredients_list: ingredients,
-                steps: ["A IA teve um soluço! Mas misture tudo na frigideira com alho e óleo que fica bom.", "Tempere com sal.", "Sirva quente."]
+                steps: ["A IA teve um soluço! Misture tudo na frigideira.", "Tempere com sal.", "Sirva quente."]
             };
         }
     }
 
-    // 2. Gera uma dica rápida (Feature Extra)
     async function callGeminiTip(recipeName) {
+        if (!apiKey) return "Adicione sua API Key para ver a dica!";
+
         const prompt = `Dê uma única dica culinária curta, profissional e "secreta" para deixar o prato "${recipeName}" ainda mais gostoso. Máximo de 20 palavras. Use um emoji.`;
 
         try {
@@ -397,38 +435,36 @@
             return;
         }
 
-        // Mostra Loading
         document.getElementById('loading-overlay').classList.remove('hidden-screen');
         document.getElementById('loading-text').innerText = `Inventando algo com ${selectedIngredients.join(', ')}...`;
 
-        // Chama a IA
         const recipe = await callGeminiRecipe(selectedIngredients);
         currentRecipeTitle = recipe.title;
 
-        // Preenche a tela
         document.getElementById('recipe-title').innerText = recipe.title;
         document.getElementById('recipe-time').innerText = recipe.time;
         
-        // Renderiza Ingredientes sugeridos pela IA
         const listEl = document.getElementById('selected-list');
         listEl.innerHTML = ''; 
-        recipe.ingredients_list.forEach(ing => {
-            listEl.innerHTML += `<li class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-orange-400 rounded-full"></div> ${ing}</li>`;
-        });
+        if(recipe.ingredients_list) {
+            recipe.ingredients_list.forEach(ing => {
+                listEl.innerHTML += `<li class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-orange-400 rounded-full"></div> ${ing}</li>`;
+            });
+        }
 
-        // Renderiza Passos
         const stepsContainer = document.getElementById('recipe-steps');
         stepsContainer.innerHTML = '';
-        recipe.steps.forEach((step, index) => {
-            stepsContainer.innerHTML += `
-                <div class="flex gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <span class="font-bold text-orange-500 bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm flex-shrink-0 border border-orange-100">${index + 1}</span>
-                    <p class="text-gray-600 text-sm mt-1">${step}</p>
-                </div>
-            `;
-        });
+        if(recipe.steps) {
+            recipe.steps.forEach((step, index) => {
+                stepsContainer.innerHTML += `
+                    <div class="flex gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span class="font-bold text-orange-500 bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm flex-shrink-0 border border-orange-100">${index + 1}</span>
+                        <p class="text-gray-600 text-sm mt-1">${step}</p>
+                    </div>
+                `;
+            });
+        }
 
-        // Reset UI
         document.getElementById('chef-tip-content').classList.add('hidden');
         document.getElementById('chef-tip-content').innerText = '';
         
@@ -436,7 +472,6 @@
         btnSave.innerHTML = `<i data-lucide="heart"></i> Salvar nos Favoritos`;
         btnSave.className = "w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 transition-colors flex justify-center gap-2 items-center mb-8";
 
-        // Esconde Loading e mostra tela
         document.getElementById('loading-overlay').classList.add('hidden-screen');
         hideAllScreens();
         document.getElementById('screen-result').classList.remove('hidden-screen');
@@ -448,7 +483,6 @@
         const btn = document.querySelector('#chef-tip-container button');
         const contentDiv = document.getElementById('chef-tip-content');
         
-        // Animação de loading no botão
         const originalText = btn.innerHTML;
         btn.innerHTML = `<div class="loader !w-5 !h-5 !border-2"></div> <span class="text-indigo-900 font-bold text-sm ml-2">Consultando o Chef...</span>`;
         
@@ -457,7 +491,6 @@
         contentDiv.innerText = tip;
         contentDiv.classList.remove('hidden');
         
-        // Restaura botão
         btn.innerHTML = originalText;
         lucide.createIcons();
     }
@@ -469,7 +502,7 @@
 
     function updateNav(activeTab) {
         document.getElementById('navbar').classList.remove('hidden');
-        ['home', 'favorites', 'profile'].forEach(tab => {
+        ['home', 'favorites', 'profile', 'list'].forEach(tab => {
             const el = document.getElementById(`nav-${tab}`);
             if(el) el.className = `flex flex-col items-center justify-center w-full nav-inactive hover:text-gray-600 transition-colors`;
         });
@@ -497,6 +530,15 @@
         updateNav('favorites');
         window.scrollTo(0,0);
     }
+    
+    // Nova Função de Navegação para Lista
+    function goToList() {
+        hideAllScreens();
+        document.getElementById('screen-list').classList.remove('hidden-screen');
+        updateNav('list');
+        renderList();
+        window.scrollTo(0,0);
+    }
 
     function goToProfile() {
         hideAllScreens();
@@ -506,6 +548,58 @@
     }
 
     function goBack() { goToHome(); }
+
+    // --- LÓGICA DA LISTA DE COMPRAS (Nova) ---
+    function renderList() {
+        const listEl = document.getElementById('shopping-list');
+        const emptyEl = document.getElementById('empty-list');
+        listEl.innerHTML = '';
+
+        if (shoppingList.length === 0) {
+            emptyEl.classList.remove('hidden');
+        } else {
+            emptyEl.classList.add('hidden');
+            shoppingList.forEach((item, index) => {
+                listEl.innerHTML += `
+                    <li class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm group hover:border-orange-200 transition-colors">
+                        <div class="flex items-center gap-3 w-full">
+                            <div class="relative flex items-center w-full">
+                                <input type="checkbox" id="item-${index}" class="w-5 h-5 accent-orange-600 rounded cursor-pointer peer z-10 opacity-0 absolute inset-0 h-full w-full">
+                                <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-orange-500 peer-checked:border-orange-500 flex items-center justify-center transition-colors pointer-events-none">
+                                    <i data-lucide="check" class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100"></i>
+                                </div>
+                                <label for="item-${index}" class="text-gray-700 ml-3 peer-checked:line-through peer-checked:text-gray-400 cursor-pointer select-none flex-grow">${item}</label>
+                            </div>
+                        </div>
+                        <button onclick="removeListItem(${index})" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors z-20">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </li>
+                `;
+            });
+        }
+        lucide.createIcons();
+    }
+
+    function addListItem() {
+        const input = document.getElementById('new-item-input');
+        const val = input.value.trim();
+        if (val) {
+            shoppingList.push(val);
+            input.value = '';
+            renderList();
+            input.focus();
+        }
+    }
+
+    function removeListItem(index) {
+        shoppingList.splice(index, 1);
+        renderList();
+    }
+    
+    function handleEnter(e) {
+        if(e.key === 'Enter') addListItem();
+    }
 
     function saveRecipe() {
         const btnSave = document.getElementById('btn-save');
